@@ -6,21 +6,22 @@ import { useState, useEffect, useRef } from 'react';
 import gsap from 'gsap';
 import Lenis from '@studio-freight/lenis';
 import ScrollTrigger from 'gsap/ScrollTrigger';
-import SnapPlugin from 'gsap';
+// import SnapPlugin from 'gsap/dist/SnapPlugin.js';
 import { Frameworks } from './components/Frameworks';
 import { Globe } from './components/globe';
 import SplitType from 'split-type';
 import { Timeline } from './components/timeline';
 import { experiences } from './components/constants'; // Adjust path if needed
 import ScrambleTextPlugin from 'gsap/ScrambleTextPlugin';
+import Image from 'next/image'
 
 
-gsap.registerPlugin(ScrollTrigger, SnapPlugin);
+
+gsap.registerPlugin(ScrollTrigger);
 gsap.registerPlugin(ScrambleTextPlugin);
 
 
 export default function Home() {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const [isActive, setIsActive] = useState(false);
   const [scrollLocked, setScrollLocked] = useState(true);
   const grid2Container = useRef<HTMLDivElement>(null);
@@ -437,47 +438,56 @@ const [isActive, setIsActive] = useState(false);
 
   
   useEffect(() => {
-    const track = document.getElementById("image-track");
-    if (!track) return;
+    const trackNode = document.getElementById("image-track");
+    if (!trackNode) return;           // ← if it was null we bail out
+    const track = trackNode;          // ← now TS knows “track” is never null
   
-    const handleOnDown = (e: MouseEvent | Touch) =>
-      (track.dataset.mouseDownAt = `${e.clientX}`);
+    // ——— HANDLERS ———
+    function onMouseDown(e: MouseEvent) {
+      track.dataset.mouseDownAt = `${e.clientX}`;
+    }
+    function onTouchStart(e: TouchEvent) {
+      track.dataset.mouseDownAt = `${e.touches[0].clientX}`;
+    }
   
-    const handleOnUp = () => {
+    function onMouseUp() {
       track.dataset.mouseDownAt = "0";
       track.dataset.prevPercentage = track.dataset.percentage || "0";
-    };
+    }
+    function onTouchEnd() {
+      track.dataset.mouseDownAt = "0";
+      track.dataset.prevPercentage = track.dataset.percentage || "0";
+    }
   
-    const handleOnMove = (e: MouseEvent | Touch) => {
-      if (track.dataset.mouseDownAt === "0") return;
+    function handleMove(clientX: number) {
+      // coalesce so downAt is always a string
+      const downAt = track.dataset.mouseDownAt ?? "0";
+      if (downAt === "0") return;
     
-      const mouseDelta = parseFloat(track.dataset.mouseDownAt || "0") - e.clientX;
+      // same for prevPercentage
+      const prevPct = parseFloat(track.dataset.prevPercentage ?? "0");
+    
+      const delta = parseFloat(downAt) - clientX;
       const maxDelta = window.innerWidth / 2;
+      const percentage = (delta / maxDelta) * -100;
+      const nextUnconstrained = prevPct + percentage;
     
-      const percentage = (mouseDelta / maxDelta) * -100;
-      const prevPercentage = parseFloat(track.dataset.prevPercentage || "0");
-      const nextPercentageUnconstrained = prevPercentage + percentage;
-    
-      // Limit based on how much track overflows the screen
+      // clamp based on overflow
       const trackWidth = track.scrollWidth;
-      const windowWidth = window.innerWidth;
-      const maxScroll = ((trackWidth - windowWidth) / trackWidth) * -100;
+      const maxScroll = ((trackWidth - window.innerWidth) / trackWidth) * -100;
+      const next = Math.max(Math.min(nextUnconstrained, 0), maxScroll);
     
-      const nextPercentage = Math.max(Math.min(nextPercentageUnconstrained, 0), maxScroll);
-    
-      track.dataset.percentage = `${nextPercentage}`;
-    
+      track.dataset.percentage = `${next}`;
       track.animate(
-        {
-          transform: `translate(${nextPercentage}%, -50%)`,
-        },
+        { transform: `translate(${next}%, -50%)` },
         { duration: 1200, fill: "forwards" }
       );
-    
-      for (const image of track.getElementsByClassName("image") as any) {
-        image.animate(
+  
+      for (const el of track.getElementsByClassName("image")) {
+        const img = el as HTMLImageElement;
+        img.animate(
           {
-            objectPosition: `${100 + nextPercentage}% center`,
+            objectPosition: `${100 + next}% center`,
             width: '40vmin',
             height: '56vmin',
             borderRadius: '1rem',
@@ -485,25 +495,34 @@ const [isActive, setIsActive] = useState(false);
           { duration: 1200, fill: "forwards" }
         );
       }
-    };
+    }
   
-    // Event bindings
-    window.addEventListener("mousedown", handleOnDown as any);
-    window.addEventListener("touchstart", (e) => handleOnDown(e.touches[0]));
-    window.addEventListener("mouseup", handleOnUp);
-    window.addEventListener("touchend", (e) => handleOnUp());
-    window.addEventListener("mousemove", handleOnMove as any);
-    window.addEventListener("touchmove", (e) => handleOnMove(e.touches[0]));
+    function onMouseMove(e: MouseEvent) {
+      handleMove(e.clientX);
+    }
+    function onTouchMove(e: TouchEvent) {
+      handleMove(e.touches[0].clientX);
+    }
   
+    // ——— ATTACH ———
+    window.addEventListener("mousedown",  onMouseDown);
+    window.addEventListener("touchstart", onTouchStart);
+    window.addEventListener("mouseup",    onMouseUp);
+    window.addEventListener("touchend",   onTouchEnd);
+    window.addEventListener("mousemove",  onMouseMove);
+    window.addEventListener("touchmove",  onTouchMove);
+  
+    // ——— CLEANUP ———
     return () => {
-      window.removeEventListener("mousedown", handleOnDown as any);
-      window.removeEventListener("touchstart", (e) => handleOnDown(e.touches[0]));
-      window.removeEventListener("mouseup", handleOnUp);
-      window.removeEventListener("touchend", (e) => handleOnUp());
-      window.removeEventListener("mousemove", handleOnMove as any);
-      window.removeEventListener("touchmove", (e) => handleOnMove(e.touches[0]));
+      window.removeEventListener("mousedown",  onMouseDown);
+      window.removeEventListener("touchstart", onTouchStart);
+      window.removeEventListener("mouseup",    onMouseUp);
+      window.removeEventListener("touchend",   onTouchEnd);
+      window.removeEventListener("mousemove",  onMouseMove);
+      window.removeEventListener("touchmove",  onTouchMove);
     };
   }, []);
+
 
     useEffect(() => {
           // use the imported SplitType at the top of the file

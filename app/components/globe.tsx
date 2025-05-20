@@ -110,11 +110,11 @@ export function Globe({ className, config = DEFAULT_CONFIG }: GlobeProps) {
         // cobe mutates these fields on the state object
         // we cast to any just here so TS stops complaining
         // while still keeping our own signature safe
-            // @ts-ignore
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         ;(state as any).phi = phi.current + rs.get();
-            // @ts-ignore
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         ;(state as any).width = width.current * 2;
-            // @ts-ignore
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         ;(state as any).height = width.current * 2;
       },
     };
