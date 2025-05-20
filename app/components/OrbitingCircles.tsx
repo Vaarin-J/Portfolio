@@ -5,14 +5,14 @@ import { twMerge } from 'tailwind-merge';
 
 type OrbitingCirclesProps = {
   className?: string;
-  children: ReactNode;
+  children: ReactNode | ReactNode[];
   reverse?: boolean;
   duration?: number;
   radius?: number;
   path?: boolean;
   iconSize?: number;
   speed?: number;
-  [key: string]: any;
+  [key: string]: unknown;
 };
 
 export function OrbitingCircles({
@@ -27,6 +27,8 @@ export function OrbitingCircles({
   ...props
 }: OrbitingCirclesProps) {
   const calculatedDuration = duration / speed;
+
+  const validChildren = Array.isArray(children) ? children : [children];
 
   return (
     <>
@@ -45,32 +47,29 @@ export function OrbitingCircles({
           />
         </svg>
       )}
-      {Array.isArray(children) &&
-        children.map((child, index) => {
-          const angle = (360 / children.length) * index;
-          return (
-            <div
-              key={index}
-              style={
-                {
-                  '--duration': calculatedDuration,
-                  '--radius': radius,
-                  '--angle': angle,
-                  '--icon-size': `${iconSize}px`,
-                } as CSSProperties
-              }
-              className={twMerge(
-                `absolute flex size-[var(--icon-size)] transform-gpu animate-orbit items-center justify-center rounded-full ${
-                  reverse ? '[animation-direction:reverse]' : ''
-                }`,
-                className
-              )}
-              {...props}
-            >
-              {child}
-            </div>
-          );
-        })}
+      {validChildren.map((child, index) => {
+        const angle = (360 / validChildren.length) * index;
+        return (
+          <div
+            key={index}
+            style={{
+              '--duration': calculatedDuration,
+              '--radius': radius,
+              '--angle': angle,
+              '--icon-size': `${iconSize}px`,
+            } as CSSProperties}
+            className={twMerge(
+              `absolute flex size-[var(--icon-size)] transform-gpu animate-orbit items-center justify-center rounded-full ${
+                reverse ? '[animation-direction:reverse]' : ''
+              }`,
+              className
+            )}
+            {...props}
+          >
+            {child}
+          </div>
+        );
+      })}
     </>
   );
 }

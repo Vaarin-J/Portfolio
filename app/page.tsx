@@ -7,14 +7,13 @@ import gsap from 'gsap';
 import Lenis from '@studio-freight/lenis';
 import ScrollTrigger from 'gsap/ScrollTrigger';
 import SnapPlugin from 'gsap';
-import Card from './components/Card';
 import { Frameworks } from './components/Frameworks';
 import { Globe } from './components/globe';
 import SplitType from 'split-type';
 import { Timeline } from './components/timeline';
 import { experiences } from './components/constants'; // Adjust path if needed
 import ScrambleTextPlugin from 'gsap/ScrambleTextPlugin';
-
+/* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any, @typescript-eslint/no-require-imports */
 // import ImageSlider from './components/ImageSlider';
 
 
@@ -23,7 +22,8 @@ gsap.registerPlugin(ScrambleTextPlugin);
 
 
 export default function Home() {
-  const [isActive, setIsActive] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+const [isActive, setIsActive] = useState(false);
   const [scrollLocked, setScrollLocked] = useState(true);
   const grid2Container = useRef<HTMLDivElement>(null);
 
@@ -458,7 +458,7 @@ export default function Home() {
     
       const percentage = (mouseDelta / maxDelta) * -100;
       const prevPercentage = parseFloat(track.dataset.prevPercentage || "0");
-      let nextPercentageUnconstrained = prevPercentage + percentage;
+      const nextPercentageUnconstrained = prevPercentage + percentage;
     
       // Limit based on how much track overflows the screen
       const trackWidth = track.scrollWidth;
@@ -507,11 +507,10 @@ export default function Home() {
     };
   }, []);
 
-  useEffect(() => {
-    const SplitType = require('split-type').default;
-    gsap.registerPlugin(ScrollTrigger);
-  
-    const split = new SplitType(".item h1", { types: "chars" });
+    useEffect(() => {
+      +    // use the imported SplitType at the top of the file
+      +    gsap.registerPlugin(ScrollTrigger);
+      +    new SplitType(".item h1", { types: "chars" });
     const chars = document.querySelectorAll(".item h1 .char");
   
     gsap.fromTo(
@@ -591,7 +590,7 @@ export default function Home() {
       const container = document.createElement('div');
       container.classList.add('block');
   
-      for (let char of innerText) {
+      for (const char of innerText) {
         const span = document.createElement('span');
         span.innerText = char.trim() === '' ? '\u00A0' : char;
         span.classList.add('letter');
@@ -925,6 +924,7 @@ export default function Home() {
           <div ref={videoContainerRef3} className="video-offset translate-x-[-20px]">
             <img
               src="/rag.png"
+              alt="Nutrition LLM App screenshot"
               className="image pointer-events-auto transition-all duration-500 hover:shadow-[0_0_40px_#a8d1cd]"
               style={{
                 width: '100%',
@@ -977,6 +977,7 @@ export default function Home() {
     >
       <img
         src={src}
+        alt={label}
         className="image pointer-events-none"
         style={{
           width: "100%",

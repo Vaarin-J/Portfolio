@@ -1,15 +1,18 @@
 'use client';
 
-import React, { useRef, useEffect } from 'react';
+import React, { useRef } from 'react';
 import { motion } from 'framer-motion';
-import gsap from 'gsap';
 import styles from './Button.module.css';
 
-export default function Button({ isActive, toggleMenu }: { isActive: boolean; toggleMenu(): void }) {
+export default function Button({
+  isActive,
+  toggleMenu,
+}: {
+  isActive: boolean;
+  toggleMenu(): void;
+}) {
   const btnRef = useRef<HTMLDivElement>(null);
-  const bounding = useRef<DOMRect | null>(null);
 
-  
   return (
     <div ref={btnRef} className={styles.button}>
       <motion.div
