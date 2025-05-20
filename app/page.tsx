@@ -405,35 +405,44 @@ export default function Home() {
       }
     );
   }, []);
-
   useEffect(() => {
     const track = document.getElementById("image-track");
     if (!track) return;
   
-    const handleOnDown = (e: MouseEvent | Touch) =>
-      (track.dataset.mouseDownAt = `${e.clientX}`);
+    const handleOnDown = (e: Event) => {
+      const clientX =
+        (e as MouseEvent).clientX ?? (e as TouchEvent).touches?.[0]?.clientX;
+      if (clientX !== undefined) {
+        track.dataset.mouseDownAt = `${clientX}`;
+      }
+    };
   
     const handleOnUp = () => {
       track.dataset.mouseDownAt = "0";
       track.dataset.prevPercentage = track.dataset.percentage || "0";
     };
   
-    const handleOnMove = (e: MouseEvent | Touch) => {
-      if (track.dataset.mouseDownAt === "0") return;
+    const handleOnMove = (e: Event) => {
+      const clientX =
+        (e as MouseEvent).clientX ?? (e as TouchEvent).touches?.[0]?.clientX;
+      if (track.dataset.mouseDownAt === "0" || clientX === undefined) return;
   
-      const mouseDelta = parseFloat(track.dataset.mouseDownAt || "0") - e.clientX;
+      const mouseDelta =
+        parseFloat(track.dataset.mouseDownAt || "0") - clientX;
       const maxDelta = window.innerWidth / 2;
   
       const percentage = (mouseDelta / maxDelta) * -100;
       const prevPercentage = parseFloat(track.dataset.prevPercentage || "0");
       const nextPercentageUnconstrained = prevPercentage + percentage;
   
-      // Limit based on how much track overflows the screen
       const trackWidth = track.scrollWidth;
       const windowWidth = window.innerWidth;
       const maxScroll = ((trackWidth - windowWidth) / trackWidth) * -100;
   
-      const nextPercentage = Math.max(Math.min(nextPercentageUnconstrained, 0), maxScroll);
+      const nextPercentage = Math.max(
+        Math.min(nextPercentageUnconstrained, 0),
+        maxScroll
+      );
   
       track.dataset.percentage = `${nextPercentage}`;
   
@@ -444,37 +453,41 @@ export default function Home() {
         { duration: 1200, fill: "forwards" }
       );
   
-      for (const image of track.getElementsByClassName("image") as HTMLCollectionOf<HTMLElement>) {
+      for (const image of track.getElementsByClassName(
+        "image"
+      ) as HTMLCollectionOf<HTMLElement>) {
         image.animate(
           {
             objectPosition: `${100 + nextPercentage}% center`,
-            width: '40vmin',
-            height: '56vmin',
-            borderRadius: '1rem',
+            width: "40vmin",
+            height: "56vmin",
+            borderRadius: "1rem",
           },
           { duration: 1200, fill: "forwards" }
         );
       }
     };
   
-    // Event bindings
-    window.addEventListener("mousedown", handleOnDown as any);
-    window.addEventListener("touchstart", (e) => handleOnDown(e.touches[0]));
+    // ✅ Event bindings with correct types
+    window.addEventListener("mousedown", handleOnDown);
+    window.addEventListener("touchstart", handleOnDown);
     window.addEventListener("mouseup", handleOnUp);
-    window.addEventListener("touchend", (e) => handleOnUp());
-    window.addEventListener("mousemove", handleOnMove as any);
-    window.addEventListener("touchmove", (e) => handleOnMove(e.touches[0]));
+    window.addEventListener("touchend", handleOnUp);
+    window.addEventListener("mousemove", handleOnMove);
+    window.addEventListener("touchmove", handleOnMove);
   
     return () => {
-      window.removeEventListener("mousedown", handleOnDown as any);
-      window.removeEventListener("touchstart", (e) => handleOnDown(e.touches[0]));
+      window.removeEventListener("mousedown", handleOnDown);
+      window.removeEventListener("touchstart", handleOnDown);
       window.removeEventListener("mouseup", handleOnUp);
-      window.removeEventListener("touchend", (e) => handleOnUp());
-      window.removeEventListener("mousemove", handleOnMove as any);
-      window.removeEventListener("touchmove", (e) => handleOnMove(e.touches[0]));
+      window.removeEventListener("touchend", handleOnUp);
+      window.removeEventListener("mousemove", handleOnMove);
+      window.removeEventListener("touchmove", handleOnMove);
     };
   }, []);
 
+  
+  
   useEffect(() => {
     const tween = gsap.to('.projects-title', {
       /* animate our CSS variable from 0% → 100% */
