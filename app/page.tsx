@@ -13,8 +13,6 @@ import SplitType from 'split-type';
 import { Timeline } from './components/timeline';
 import { experiences } from './components/constants'; // Adjust path if needed
 import ScrambleTextPlugin from 'gsap/ScrambleTextPlugin';
-/* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any, @typescript-eslint/no-require-imports */
-// import ImageSlider from './components/ImageSlider';
 
 
 gsap.registerPlugin(ScrollTrigger, SnapPlugin);
@@ -508,9 +506,9 @@ const [isActive, setIsActive] = useState(false);
   }, []);
 
     useEffect(() => {
-      +    // use the imported SplitType at the top of the file
-      +    gsap.registerPlugin(ScrollTrigger);
-      +    new SplitType(".item h1", { types: "chars" });
+          // use the imported SplitType at the top of the file
+          gsap.registerPlugin(ScrollTrigger);
+          new SplitType(".item h1", { types: "chars" });
     const chars = document.querySelectorAll(".item h1 .char");
   
     gsap.fromTo(

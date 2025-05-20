@@ -13,7 +13,7 @@ type Marker = {
 type GlobeConfig = {
   width: number;
   height: number;
-  onRender: (state: any) => void;
+  onRender: (state: unknown) => void;
   devicePixelRatio: number;
   phi: number;
   theta: number;
@@ -63,8 +63,10 @@ const DEFAULT_CONFIG: GlobeConfig = {
 };
 
 export function Globe({ className, config = DEFAULT_CONFIG }: GlobeProps) {
-  let phi = 0;
-  let width = 0;
+  // useRef hooks to persist these values across renders
+  const phi = useRef(0);
+  const width = useRef(0);
+
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const pointerInteracting = useRef<number | null>(null);
 
@@ -92,7 +94,7 @@ export function Globe({ className, config = DEFAULT_CONFIG }: GlobeProps) {
   useEffect(() => {
     const onResize = () => {
       if (canvasRef.current) {
-        width = canvasRef.current.offsetWidth;
+        width.current = canvasRef.current.offsetWidth;
       }
     };
 
@@ -101,18 +103,25 @@ export function Globe({ className, config = DEFAULT_CONFIG }: GlobeProps) {
 
     const globeConfig: GlobeConfig = {
       ...config,
-      width: width * 2,
-      height: width * 2,
+      width: width.current * 2,
+      height: width.current * 2,
       onRender: (state) => {
-        if (!pointerInteracting.current) phi += 0.005;
-        state.phi = phi + rs.get();
-        state.width = width * 2;
-        state.height = width * 2;
+        if (!pointerInteracting.current) phi.current += 0.005;
+        // cobe mutates these fields on the state object
+        // we cast to any just here so TS stops complaining
+        // while still keeping our own signature safe
+            // @ts-ignore
+        ;(state as any).phi = phi.current + rs.get();
+            // @ts-ignore
+        ;(state as any).width = width.current * 2;
+            // @ts-ignore
+        ;(state as any).height = width.current * 2;
       },
     };
 
     const globe = createGlobe(canvasRef.current!, globeConfig);
 
+    // fade it in once mounted
     setTimeout(() => {
       if (canvasRef.current) {
         canvasRef.current.style.opacity = '1';
