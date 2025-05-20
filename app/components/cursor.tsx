@@ -23,7 +23,7 @@ export default function Cursor() {
 
     const isHoverTarget =
   target.closest(
-    'a, button, [role="button"], img, h3, h4, h5, h6, .text-blur-target'
+    'a, button, [role="button"], img, video, h3, h4, h5, h6, .text-blur-target'
   ) !== null;
 
 setIsHoveringClickable(isHoverTarget);

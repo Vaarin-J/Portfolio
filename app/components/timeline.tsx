@@ -32,7 +32,7 @@ export const Timeline = ({ data }: { data: TimelineItem[] }) => {
   }, []);
 
   useEffect(() => {
-    const elements = gsap.utils.toArray<HTMLElement>('.timeline-point');
+    const elements = gsap.utils.toArray('.timeline-point') as HTMLElement[];
     const splitInstances: SplitType[] = [];
 
     elements.forEach((el) => {

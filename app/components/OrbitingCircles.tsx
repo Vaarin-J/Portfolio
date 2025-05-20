@@ -28,7 +28,7 @@ export function OrbitingCircles({
 }: OrbitingCirclesProps) {
   const calculatedDuration = duration / speed;
 
-  const validChildren = Array.isArray(children) ? children : [children];
+  const validChildren: ReactNode[] = Array.isArray(children) ? children : [children];
 
   return (
     <>
@@ -47,7 +47,7 @@ export function OrbitingCircles({
           />
         </svg>
       )}
-      {validChildren.map((child, index) => {
+      {validChildren.map((child: ReactNode, index: number) => {
         const angle = (360 / validChildren.length) * index;
         return (
           <div

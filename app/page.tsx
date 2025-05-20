@@ -6,15 +6,18 @@ import { useState, useEffect, useRef } from 'react';
 import gsap from 'gsap';
 import Lenis from '@studio-freight/lenis';
 import ScrollTrigger from 'gsap/ScrollTrigger';
-// import SnapPlugin from 'gsap/dist/SnapPlugin.js';
+// import SnapPlugin from 'gsap';
+// import Card from './components/Card';
 import { Frameworks } from './components/Frameworks';
 import { Globe } from './components/globe';
 import SplitType from 'split-type';
 import { Timeline } from './components/timeline';
 import { experiences } from './components/constants'; // Adjust path if needed
 import ScrambleTextPlugin from 'gsap/ScrambleTextPlugin';
-import Image from 'next/image'
 
+
+
+// import ImageSlider from './components/ImageSlider';
 
 
 gsap.registerPlugin(ScrollTrigger);
@@ -22,7 +25,8 @@ gsap.registerPlugin(ScrambleTextPlugin);
 
 
 export default function Home() {
-const [isActive, setIsActive] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [isActive, setIsActive] = useState(false);
   const [scrollLocked, setScrollLocked] = useState(true);
   const grid2Container = useRef<HTMLDivElement>(null);
 
@@ -37,114 +41,102 @@ const [isActive, setIsActive] = useState(false);
 
 
 
+  const letterConfig = [
+    { char: 'v', cls: 'v', hasCircle: false },
+    { char: 'a', cls: 'a', hasCircle: true },
+    { char: 'a', cls: 'a2', hasCircle: true },
+    { char: 'r', cls: 'r', hasCircle: false },
+    { char: 'i', cls: 'i', hasCircle: false },
+    { char: 'n', cls: 'n', hasCircle: false },
+  ];
 
 
-  useEffect(() => {
-    const vid = videoRef.current;
-    if (!vid) return;
-
-    const onLoaded = () => {
-      vid.currentTime = 7;
-      vid.play();
-    };
-    const onTimeUpdate = () => {
-      if (vid.currentTime >= 15) {
-        vid.currentTime = 7;
-      }
-    };
-
-    vid.addEventListener('loadedmetadata', onLoaded);
-    vid.addEventListener('timeupdate', onTimeUpdate);
-    return () => {
-      vid.removeEventListener('loadedmetadata', onLoaded);
-      vid.removeEventListener('timeupdate', onTimeUpdate);
-    };
-  }, []);
-
-
-  useEffect(() => {
-    if (!videoContainerRef.current) return;
-
-    gsap.from(videoContainerRef.current, {
-      scrollTrigger: {
-        trigger: videoContainerRef.current,
-        start: 'top 75%',      // when top of element hits 80% down the viewport
-        end: 'top 20%',        // optional: 60% down the viewport
-        scrub: true,           // tie the animation to scroll position
-      },
-      x: '100%',               // start offscreen to the right
-      rotation: 30,            // start rotated
-      opacity: 0,              // fade in
-      ease: 'power4.out',
-    });
-  }, []);
-
-  useEffect(() => {
-    if (!videoContainerRef2.current) return;
-    gsap.from(videoContainerRef2.current, {
-      scrollTrigger: {
-        trigger: videoContainerRef2.current,
-        start: 'top 75%',
-        end: 'top 20%',
-        scrub: true,
-      },
-      x: '-100%',      // slide in from left
-      rotation: -30,   // rotate in from the left
-      opacity: 0,
-      ease: 'power4.out',
-    });
-  }, []);
   
-  // copy for #3
   useEffect(() => {
-    if (!videoContainerRef3.current) return;
-    gsap.from(videoContainerRef3.current, {
-      scrollTrigger: {
-        trigger: videoContainerRef3.current,
-        start: 'top 75%',
-        end:   'top 20%',
-        scrub: true,
-      },
-      x: '100%',
-      rotation: 30,
-      opacity: 0,
-      ease: 'power4.out',
-    });
+    const handlePageShow = () => {
+      // Reset scroll position
+      window.scrollTo(0, 0);
+  
+      // Reset animation styles
+      const letters = document.querySelectorAll('.letter');
+      letters.forEach((el) => {
+        (el as HTMLElement).style.top = '100px';
+        (el as HTMLElement).style.opacity = '1';
+      });
+  
+      const spans = document.querySelectorAll('.letter span');
+      spans.forEach((el) => {
+        (el as HTMLElement).style.opacity = '1';
+      });
+  
+      const circles = document.querySelectorAll('.circle');
+      circles.forEach((el) => {
+        (el as HTMLElement).style.opacity = '0';
+        (el as HTMLElement).style.transform = 'scale(1)';
+      });
+    };
+  
+    window.addEventListener('pageshow', handlePageShow);
+    return () => window.removeEventListener('pageshow', handlePageShow);
   }, []);
 
+
+  useEffect(() => {
+    if ('scrollRestoration' in history) {
+      history.scrollRestoration = 'manual';
+    }
+  
+    const handleScrollReset = () => {
+      // Fallback scroll to top
+      window.scrollTo({ top: 0, behavior: 'auto' });
+  
+      // Smooth scroll to top using Lenis after layout
+      requestAnimationFrame(() => {
+        const lenis = new Lenis();
+        lenis.scrollTo(0, { immediate: true });
+        lenis.destroy(); // Destroy instance after use to avoid overlap
+      });
+    };
+  
+    // Run on initial load
+    const timeout = setTimeout(handleScrollReset, 100);
+  
+    // Also bind to pageshow in case tab restore happens
+    window.addEventListener('pageshow', handleScrollReset);
+  
+    return () => {
+      clearTimeout(timeout);
+      window.removeEventListener('pageshow', handleScrollReset);
+    };
+  }, []);
 
 
   useEffect(() => {
     const lenis = new Lenis();
   
-    function raf(time: number) {
-      if (!scrollLocked) lenis.raf(time);
+    requestAnimationFrame(function raf(time) {
+      lenis.raf(time);
       requestAnimationFrame(raf);
-    }
+    });
   
-    requestAnimationFrame(raf);
+    // Ensure scroll starts at top
+    setTimeout(() => {
+      lenis.scrollTo(0, { immediate: true });
+    }, 50);
   
-    const unlockScroll = setTimeout(() => {
+    // Disable scrolling manually via Lenis
+    lenis.stop();
+  
+    // Re-enable after animation
+    const unlock = setTimeout(() => {
+      lenis.start();         // Unlock Lenis scroll
       setScrollLocked(false);
-    }, 0);
+    }, 8000); // 7s match your intro animation
   
     return () => {
       lenis.destroy();
-      clearTimeout(unlockScroll);
+      clearTimeout(unlock);
     };
-  }, [scrollLocked]);
-
-  useEffect(() => {
-    gsap.to('.fade-overlay', {
-      scrollTrigger: {
-        trigger: '.next-section',
-        start: 'top 85%',
-        end: 'top 50%',
-        scrub: true,
-      },
-      opacity: 1,
-      ease: 'none',
-    });
   }, []);
 
   useEffect(() => {
@@ -156,41 +148,63 @@ const [isActive, setIsActive] = useState(false);
   }, [scrollLocked]);
 
   useEffect(() => {
+    const vid = videoRef.current;
+    if (!vid) return;
+  
+    const onLoaded = () => {
+      vid.currentTime = 7;
+      vid.play();
+    };
+    const onTimeUpdate = () => {
+      if (vid.currentTime >= 15) {
+        vid.currentTime = 7;
+      }
+    };
+  
+    vid.addEventListener('loadedmetadata', onLoaded);
+    vid.addEventListener('timeupdate', onTimeUpdate);
+    return () => {
+      vid.removeEventListener('loadedmetadata', onLoaded);
+      vid.removeEventListener('timeupdate', onTimeUpdate);
+    };
+  }, []);
+
+  useEffect(() => {
     gsap.from('.letter', {
       duration: 2,
       top: '100px',
       ease: 'power4.inOut',
       stagger: { amount: 0.5 },
     });
-
+  
     gsap.to('.a2', {
       duration: 1,
       top: '20px',
       ease: 'power2.inOut',
       delay: 3,
     });
-
+  
     gsap.to('.header', {
       duration: 4,
       scale: 2,
       ease: 'power2.inOut',
       delay: 4,
     });
-
+  
     gsap.to('.circle', {
       duration: 1,
       opacity: 1,
       ease: 'power1.inOut',
       delay: 4,
     });
-
+  
     gsap.to('.letter span', {
       duration: 1.5,
       opacity: 0,
       ease: 'power1.inOut',
       delay: 4.5,
     });
-
+  
     const tl = gsap.timeline({ delay: 6 });
     tl.to('.circle', {
       duration: 2,
@@ -218,7 +232,7 @@ const [isActive, setIsActive] = useState(false);
       },
       '-=0.5'
     );
-
+  
     gsap.from('.nav-items > *, .menu-toggle, .bottom-nav > *', {
       duration: 1.4,
       opacity: 0,
@@ -227,7 +241,7 @@ const [isActive, setIsActive] = useState(false);
       delay: 7,
       stagger: 0.2,
     });
-
+  
     gsap.from('.side-menu-container', {
       duration: 1.4,
       opacity: 0,
@@ -235,14 +249,312 @@ const [isActive, setIsActive] = useState(false);
       ease: 'power3.inOut',
       delay: 7,
     });
-
+  
     gsap.to('.side-svg', {
       duration: 1,
       opacity: 1,
       ease: 'power1.inOut',
       delay: 7.2,
     });
-    
+  }, []);
+
+  useEffect(() => {
+    const blocker = document.getElementById('initial-blocker');
+    if (!blocker) return;
+  
+    const timeout = setTimeout(() => {
+      blocker.classList.add('opacity-0');
+      setTimeout(() => {
+        blocker.style.display = 'none';
+      }, 600); // match fade duration to hide element fully
+    }, 400); // fade starts after 1 second
+  
+    return () => clearTimeout(timeout);
+  }, []);
+
+  useEffect(() => {
+    const tl = gsap.timeline({ defaults: { ease: 'none' }, delay: 8.5 });
+  
+    // Fade in the spans instantly at 7s
+    tl.to(['#scramble-text-1', '#scramble-text-2'], {
+      opacity: 1,
+      duration: 0.01, // instant fade-in
+    });
+  
+    // Start the scramble effect
+    tl.to('#scramble-text-1', {
+      scrambleText: {
+        text: 'Software Engineer',
+        chars: 'upperAndLowerCase',
+        speed: 0.8,
+      },
+      duration: 1,
+    }).to('#scramble-text-2', {
+      scrambleText: {
+        text: 'Data Scientist',
+        chars: 'upperAndLowerCase',
+        speed: 0.8,
+      },
+      duration: 1,
+    });
+  }, []);
+
+  useEffect(() => {
+    const textElements = document.querySelectorAll(".text");
+  
+    textElements.forEach((element) => {
+      const innerText = element.textContent || '';
+      element.innerHTML = '';
+  
+      const container = document.createElement('div');
+      container.classList.add('block');
+  
+      for (const char of innerText) {
+        const span = document.createElement('span');
+        span.innerText = char.trim() === '' ? '\u00A0' : char;
+        span.classList.add('letter');
+        container.appendChild(span);
+      }
+  
+      element.appendChild(container);
+      element.appendChild(container.cloneNode(true));
+    });
+  
+    textElements.forEach((el) => {
+      el.addEventListener("mouseover", () => {
+        el.classList.remove("play");
+      });
+    });
+  
+    return () => {
+      textElements.forEach((el) => {
+        el.removeEventListener("mouseover", () => {
+          el.classList.remove("play");
+        });
+      });
+    };
+  }, []);
+
+
+  useEffect(() => {
+    const svg = document.querySelector("#contact-svg") as SVGSVGElement;
+    if (!svg) return;
+  
+    const mouse = svg.createSVGPoint();
+    const leftEye = createEye("#left-eye");
+    const rightEye = createEye("#right-eye");
+  
+    function onFrame() {
+      const ctm = svg.getScreenCTM();
+      if (!ctm) return;
+      const point = mouse.matrixTransform(ctm.inverse());
+      leftEye.rotateTo(point);
+      rightEye.rotateTo(point);
+    }
+  
+    function onMouseMove(event: MouseEvent) {
+      mouse.x = event.clientX;
+      mouse.y = event.clientY;
+      requestAnimationFrame(onFrame);
+    }
+  
+    function createEye(selector: string) {
+      const element = document.querySelector(selector) as SVGGElement;
+      gsap.set(element, { transformOrigin: "center" });
+  
+      const bbox = element.getBBox();
+      const centerX = bbox.x + bbox.width / 2;
+      const centerY = bbox.y + bbox.height / 2;
+  
+      function rotateTo(point: DOMPoint) {
+        const dx = point.x - centerX;
+        const dy = point.y - centerY;
+        const angle = Math.atan2(dy, dx);
+        gsap.to(element, { rotation: angle + "_rad_short", duration: 0.3 });
+      }
+  
+      return { rotateTo };
+    }
+  
+    window.addEventListener("mousemove", onMouseMove);
+    return () => window.removeEventListener("mousemove", onMouseMove);
+  }, []);
+
+  useEffect(() => {
+        gsap.registerPlugin(ScrollTrigger);
+      const chars = document.querySelectorAll(".item h1 .char");
+  
+    gsap.fromTo(
+      chars,
+      { fontWeight: 100 },
+      {
+        fontWeight: 900,
+        duration: 1,
+        ease: "none",
+        stagger: {
+          each: 0.35,
+          from: "end",
+          ease: "linear",
+        },
+        scrollTrigger: {
+          trigger: ".marquee-container",
+          start: "top bottom",
+          end: "top top",
+          scrub: true,
+        },
+      }
+    );
+  }, []);
+
+  useEffect(() => {
+    const track = document.getElementById("image-track");
+    if (!track) return;
+  
+    const handleOnDown = (e: MouseEvent | Touch) =>
+      (track.dataset.mouseDownAt = `${e.clientX}`);
+  
+    const handleOnUp = () => {
+      track.dataset.mouseDownAt = "0";
+      track.dataset.prevPercentage = track.dataset.percentage || "0";
+    };
+  
+    const handleOnMove = (e: MouseEvent | Touch) => {
+      if (track.dataset.mouseDownAt === "0") return;
+  
+      const mouseDelta = parseFloat(track.dataset.mouseDownAt || "0") - e.clientX;
+      const maxDelta = window.innerWidth / 2;
+  
+      const percentage = (mouseDelta / maxDelta) * -100;
+      const prevPercentage = parseFloat(track.dataset.prevPercentage || "0");
+      const nextPercentageUnconstrained = prevPercentage + percentage;
+  
+      // Limit based on how much track overflows the screen
+      const trackWidth = track.scrollWidth;
+      const windowWidth = window.innerWidth;
+      const maxScroll = ((trackWidth - windowWidth) / trackWidth) * -100;
+  
+      const nextPercentage = Math.max(Math.min(nextPercentageUnconstrained, 0), maxScroll);
+  
+      track.dataset.percentage = `${nextPercentage}`;
+  
+      track.animate(
+        {
+          transform: `translate(${nextPercentage}%, -50%)`,
+        },
+        { duration: 1200, fill: "forwards" }
+      );
+  
+      for (const image of track.getElementsByClassName("image") as HTMLCollectionOf<HTMLElement>) {
+        image.animate(
+          {
+            objectPosition: `${100 + nextPercentage}% center`,
+            width: '40vmin',
+            height: '56vmin',
+            borderRadius: '1rem',
+          },
+          { duration: 1200, fill: "forwards" }
+        );
+      }
+    };
+  
+    // Event bindings
+    window.addEventListener("mousedown", handleOnDown as any);
+    window.addEventListener("touchstart", (e) => handleOnDown(e.touches[0]));
+    window.addEventListener("mouseup", handleOnUp);
+    window.addEventListener("touchend", (e) => handleOnUp());
+    window.addEventListener("mousemove", handleOnMove as any);
+    window.addEventListener("touchmove", (e) => handleOnMove(e.touches[0]));
+  
+    return () => {
+      window.removeEventListener("mousedown", handleOnDown as any);
+      window.removeEventListener("touchstart", (e) => handleOnDown(e.touches[0]));
+      window.removeEventListener("mouseup", handleOnUp);
+      window.removeEventListener("touchend", (e) => handleOnUp());
+      window.removeEventListener("mousemove", handleOnMove as any);
+      window.removeEventListener("touchmove", (e) => handleOnMove(e.touches[0]));
+    };
+  }, []);
+
+  useEffect(() => {
+    const tween = gsap.to('.projects-title', {
+      /* animate our CSS variable from 0% → 100% */
+      '--reveal': '100%',
+      ease: 'none',
+      scrollTrigger: {
+        trigger: '.projects-title-container',
+        start: 'top 80%',
+        end:   'top 20%',
+        scrub: true,
+      },
+    });
+  
+    return () => {
+      tween.scrollTrigger?.kill();
+      tween.kill();
+    };
+  }, []);
+
+  useEffect(() => {
+    // slide in from 50px right → 0 as you scroll
+    const slideTween = gsap.fromTo(
+      '.projects-title',
+      { x: 60 },      // start 50px to the right
+      {
+        x: 0,         // end at natural position
+        ease: 'none',
+        scrollTrigger: {
+          trigger: '.projects-title-container',
+          start: 'top 80%',
+          end:   'top 30%',
+          scrub: true,
+        },
+      }
+    );
+  
+    return () => {
+      slideTween.scrollTrigger?.kill();
+      slideTween.kill();
+    };
+  }, []);
+
+  useEffect(() => {
+    const gpaEl = document.querySelector('.gpa-number');
+    const container = document.querySelector('.grid-4');
+  
+    if (!gpaEl || !container) return;
+  
+    let counter = { val: 0 };
+    let tween: gsap.core.Tween | null = null;
+  
+    const playAnimation = () => {
+      counter = { val: 0 }; // reset each time
+      tween?.kill();
+  
+      tween = gsap.to(counter, {
+        val: 3.7,
+        duration: 2,
+        ease: 'power2.out',
+        snap: { val: 0.1 },
+        onUpdate: () => {
+          gpaEl.textContent = counter.val.toFixed(1) + '+ GPA';
+        },
+      });
+    };
+  
+    container.addEventListener('mouseenter', playAnimation);
+  
+    return () => {
+      container.removeEventListener('mouseenter', playAnimation);
+      tween?.kill();
+    };
+  }, []);
+
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      ScrollTrigger.refresh();
+    }, 500); // give the DOM time to fully render the new section
+  
+    return () => clearTimeout(timeout);
   }, []);
 
   useEffect(() => {
@@ -302,6 +614,7 @@ const [isActive, setIsActive] = useState(false);
       tl.kill();
     };
   }, []);
+
   useEffect(() => {
     const marqueeEl = document.querySelector('.experience-track');
     if (!marqueeEl) return;
@@ -335,343 +648,53 @@ const [isActive, setIsActive] = useState(false);
     };
   }, []);
 
-
-
-  const letterConfig = [
-    { char: 'v', cls: 'v', hasCircle: false },
-    { char: 'a', cls: 'a', hasCircle: true },
-    { char: 'a', cls: 'a2', hasCircle: true },
-    { char: 'r', cls: 'r', hasCircle: false },
-    { char: 'i', cls: 'i', hasCircle: false },
-    { char: 'n', cls: 'n', hasCircle: false },
-  ];
-
   useEffect(() => {
-    const timeout = setTimeout(() => {
-      ScrollTrigger.refresh();
-    }, 500); // give the DOM time to fully render the new section
+    if (!videoContainerRef.current) return;
   
-    return () => clearTimeout(timeout);
-  }, []);
-
-  useEffect(() => {
-    const gpaEl = document.querySelector('.gpa-number');
-    const container = document.querySelector('.grid-4');
-  
-    if (!gpaEl || !container) return;
-  
-    let counter = { val: 0 };
-    let tween: gsap.core.Tween | null = null;
-  
-    const playAnimation = () => {
-      counter = { val: 0 }; // reset each time
-      tween?.kill();
-  
-      tween = gsap.to(counter, {
-        val: 3.7,
-        duration: 2,
-        ease: 'power2.out',
-        snap: { val: 0.1 },
-        onUpdate: () => {
-          gpaEl.textContent = counter.val.toFixed(1) + '+ GPA';
-        },
-      });
-    };
-  
-    container.addEventListener('mouseenter', playAnimation);
-  
-    return () => {
-      container.removeEventListener('mouseenter', playAnimation);
-      tween?.kill();
-    };
-  }, []);
-
-  
-
-  useEffect(() => {
-    setTimeout(() => {
-      ScrollTrigger.refresh();
-    }, 500);
-  }, []);
-
-  useEffect(() => {
-    const tween = gsap.to('.projects-title', {
-      /* animate our CSS variable from 0% → 100% */
-      '--reveal': '100%',
-      ease: 'none',
+    gsap.from(videoContainerRef.current, {
       scrollTrigger: {
-        trigger: '.projects-title-container',
-        start: 'top 80%',
+        trigger: videoContainerRef.current,
+        start: 'top 75%',      // when top of element hits 80% down the viewport
+        end: 'top 20%',        // optional: 60% down the viewport
+        scrub: true,           // tie the animation to scroll position
+      },
+      x: '100%',               // start offscreen to the right
+      rotation: 30,            // start rotated
+      opacity: 0,              // fade in
+      ease: 'power4.out',
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!videoContainerRef2.current) return;
+    gsap.from(videoContainerRef2.current, {
+      scrollTrigger: {
+        trigger: videoContainerRef2.current,
+        start: 'top 75%',
+        end: 'top 20%',
+        scrub: true,
+      },
+      x: '-100%',      // slide in from left
+      rotation: -30,   // rotate in from the left
+      opacity: 0,
+      ease: 'power4.out',
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!videoContainerRef3.current) return;
+    gsap.from(videoContainerRef3.current, {
+      scrollTrigger: {
+        trigger: videoContainerRef3.current,
+        start: 'top 75%',
         end:   'top 20%',
         scrub: true,
       },
+      x: '100%',
+      rotation: 30,
+      opacity: 0,
+      ease: 'power4.out',
     });
-  
-    return () => {
-      tween.scrollTrigger?.kill();
-      tween.kill();
-    };
-  }, []);
-
-  useEffect(() => {
-    // slide in from 50px right → 0 as you scroll
-    const slideTween = gsap.fromTo(
-      '.projects-title',
-      { x: 60 },      // start 50px to the right
-      {
-        x: 0,         // end at natural position
-        ease: 'none',
-        scrollTrigger: {
-          trigger: '.projects-title-container',
-          start: 'top 80%',
-          end:   'top 30%',
-          scrub: true,
-        },
-      }
-    );
-
-    return () => {
-      slideTween.scrollTrigger?.kill();
-      slideTween.kill();
-    };
-  }, []);
-
-  
-  useEffect(() => {
-    const trackNode = document.getElementById("image-track");
-    if (!trackNode) return;           // ← if it was null we bail out
-    const track = trackNode;          // ← now TS knows “track” is never null
-  
-    // ——— HANDLERS ———
-    function onMouseDown(e: MouseEvent) {
-      track.dataset.mouseDownAt = `${e.clientX}`;
-    }
-    function onTouchStart(e: TouchEvent) {
-      track.dataset.mouseDownAt = `${e.touches[0].clientX}`;
-    }
-  
-    function onMouseUp() {
-      track.dataset.mouseDownAt = "0";
-      track.dataset.prevPercentage = track.dataset.percentage || "0";
-    }
-    function onTouchEnd() {
-      track.dataset.mouseDownAt = "0";
-      track.dataset.prevPercentage = track.dataset.percentage || "0";
-    }
-  
-    function handleMove(clientX: number) {
-      // coalesce so downAt is always a string
-      const downAt = track.dataset.mouseDownAt ?? "0";
-      if (downAt === "0") return;
-    
-      // same for prevPercentage
-      const prevPct = parseFloat(track.dataset.prevPercentage ?? "0");
-    
-      const delta = parseFloat(downAt) - clientX;
-      const maxDelta = window.innerWidth / 2;
-      const percentage = (delta / maxDelta) * -100;
-      const nextUnconstrained = prevPct + percentage;
-    
-      // clamp based on overflow
-      const trackWidth = track.scrollWidth;
-      const maxScroll = ((trackWidth - window.innerWidth) / trackWidth) * -100;
-      const next = Math.max(Math.min(nextUnconstrained, 0), maxScroll);
-    
-      track.dataset.percentage = `${next}`;
-      track.animate(
-        { transform: `translate(${next}%, -50%)` },
-        { duration: 1200, fill: "forwards" }
-      );
-  
-      for (const el of track.getElementsByClassName("image")) {
-        const img = el as HTMLImageElement;
-        img.animate(
-          {
-            objectPosition: `${100 + next}% center`,
-            width: '40vmin',
-            height: '56vmin',
-            borderRadius: '1rem',
-          },
-          { duration: 1200, fill: "forwards" }
-        );
-      }
-    }
-  
-    function onMouseMove(e: MouseEvent) {
-      handleMove(e.clientX);
-    }
-    function onTouchMove(e: TouchEvent) {
-      handleMove(e.touches[0].clientX);
-    }
-  
-    // ——— ATTACH ———
-    window.addEventListener("mousedown",  onMouseDown);
-    window.addEventListener("touchstart", onTouchStart);
-    window.addEventListener("mouseup",    onMouseUp);
-    window.addEventListener("touchend",   onTouchEnd);
-    window.addEventListener("mousemove",  onMouseMove);
-    window.addEventListener("touchmove",  onTouchMove);
-  
-    // ——— CLEANUP ———
-    return () => {
-      window.removeEventListener("mousedown",  onMouseDown);
-      window.removeEventListener("touchstart", onTouchStart);
-      window.removeEventListener("mouseup",    onMouseUp);
-      window.removeEventListener("touchend",   onTouchEnd);
-      window.removeEventListener("mousemove",  onMouseMove);
-      window.removeEventListener("touchmove",  onTouchMove);
-    };
-  }, []);
-
-
-    useEffect(() => {
-          // use the imported SplitType at the top of the file
-          gsap.registerPlugin(ScrollTrigger);
-          new SplitType(".item h1", { types: "chars" });
-    const chars = document.querySelectorAll(".item h1 .char");
-  
-    gsap.fromTo(
-      chars,
-      { fontWeight: 100 },
-      {
-        fontWeight: 900,
-        duration: 1,
-        ease: "none",
-        stagger: {
-          each: 0.35,
-          from: "end",
-          ease: "linear",
-        },
-        scrollTrigger: {
-          trigger: ".marquee-container",
-          start: "top bottom",
-          end: "top top",
-          scrub: true,
-        },
-      }
-    );
-  }, []);
-  
-  useEffect(() => {
-    const svg = document.querySelector("#contact-svg") as SVGSVGElement;
-    if (!svg) return;
-  
-    const mouse = svg.createSVGPoint();
-    const leftEye = createEye("#left-eye");
-    const rightEye = createEye("#right-eye");
-  
-    function onFrame() {
-      const ctm = svg.getScreenCTM();
-      if (!ctm) return;
-      const point = mouse.matrixTransform(ctm.inverse());
-      leftEye.rotateTo(point);
-      rightEye.rotateTo(point);
-    }
-  
-    function onMouseMove(event: MouseEvent) {
-      mouse.x = event.clientX;
-      mouse.y = event.clientY;
-      requestAnimationFrame(onFrame);
-    }
-  
-    function createEye(selector: string) {
-      const element = document.querySelector(selector) as SVGGElement;
-      gsap.set(element, { transformOrigin: "center" });
-  
-      const bbox = element.getBBox();
-      const centerX = bbox.x + bbox.width / 2;
-      const centerY = bbox.y + bbox.height / 2;
-  
-      function rotateTo(point: DOMPoint) {
-        const dx = point.x - centerX;
-        const dy = point.y - centerY;
-        const angle = Math.atan2(dy, dx);
-        gsap.to(element, { rotation: angle + "_rad_short", duration: 0.3 });
-      }
-  
-      return { rotateTo };
-    }
-  
-    window.addEventListener("mousemove", onMouseMove);
-    return () => window.removeEventListener("mousemove", onMouseMove);
-  }, []);
-
-
-  useEffect(() => {
-    const textElements = document.querySelectorAll(".text");
-  
-    textElements.forEach((element) => {
-      const innerText = element.textContent || '';
-      element.innerHTML = '';
-  
-      const container = document.createElement('div');
-      container.classList.add('block');
-  
-      for (const char of innerText) {
-        const span = document.createElement('span');
-        span.innerText = char.trim() === '' ? '\u00A0' : char;
-        span.classList.add('letter');
-        container.appendChild(span);
-      }
-  
-      element.appendChild(container);
-      element.appendChild(container.cloneNode(true));
-    });
-  
-    textElements.forEach((el) => {
-      el.addEventListener("mouseover", () => {
-        el.classList.remove("play");
-      });
-    });
-  
-    return () => {
-      textElements.forEach((el) => {
-        el.removeEventListener("mouseover", () => {
-          el.classList.remove("play");
-        });
-      });
-    };
-  }, []);
-
-  useEffect(() => {
-    const tl = gsap.timeline({ defaults: { ease: 'none' }, delay: 8.5 });
-  
-    // Fade in the spans instantly at 7s
-    tl.to(['#scramble-text-1', '#scramble-text-2'], {
-      opacity: 1,
-      duration: 0.01, // instant fade-in
-    });
-  
-    // Start the scramble effect
-    tl.to('#scramble-text-1', {
-      scrambleText: {
-        text: 'Software Engineer',
-        chars: 'upperAndLowerCase',
-        speed: 0.8,
-      },
-      duration: 1,
-    }).to('#scramble-text-2', {
-      scrambleText: {
-        text: 'Data Scientist',
-        chars: 'upperAndLowerCase',
-        speed: 0.8,
-      },
-      duration: 1,
-    });
-  }, []);
-
-  useEffect(() => {
-    const blocker = document.getElementById('initial-blocker');
-    if (!blocker) return;
-  
-    const timeout = setTimeout(() => {
-      blocker.classList.add('opacity-0');
-      setTimeout(() => {
-        blocker.style.display = 'none';
-      }, 600); // match fade duration to hide element fully
-    }, 400); // fade starts after 1 second
-  
-    return () => clearTimeout(timeout);
   }, []);
 
   useEffect(() => {
@@ -701,6 +724,30 @@ const [isActive, setIsActive] = useState(false);
     });
   }, []);
 
+  useEffect(() => {
+    gsap.to('.fade-overlay', {
+      scrollTrigger: {
+        trigger: '.next-section',
+        start: 'top 85%',
+        end: 'top 50%',
+        scrub: true,
+      },
+      opacity: 1,
+      ease: 'none',
+    });
+  }, []);
+
+  useEffect(() => {
+    setTimeout(() => {
+      ScrollTrigger.refresh();
+    }, 500);
+  }, []);
+
+
+
+
+
+
   return (
 
     
@@ -710,7 +757,7 @@ const [isActive, setIsActive] = useState(false);
   id="initial-blocker"
   className="fixed inset-0 bg-black z-[9999] pointer-events-none opacity-100"
 ></div>
-      <section className="landing">
+      <section id="landing" className="landing">
       <div className="side-menu-container fixed top-0 left-0 z-[999]">
   <SideMenu />
 </div>
@@ -881,38 +928,44 @@ const [isActive, setIsActive] = useState(false);
             </p>
           </div>
         </div>
-        <div className="w-full md:w-1/2 py-40 mt-[150px] overflow-visible">
-          <div ref={videoContainerRef} className="video-offset translate-x-[-20px]">
-            <video
-              ref={videoRef}
-              loop
-              autoPlay
-              muted
-              playsInline
-              className="rounded-2xl w-full h-auto object-contain transition-all duration-500 hover:shadow-[0_0_40px_#a8d1cd]"
-            >
-              <source src="/video 2.mp4" type="video/mp4" />
-            </video>
-          </div>
-        </div>
+        <div className="w-full md:w-1/2 py-40 mt-[150px] overflow-visible relative z-10">
+  <div
+    ref={videoContainerRef}
+    className="video-offset translate-x-[-20px] relative z-10"
+  >
+    <video
+      ref={videoRef}
+      loop
+      autoPlay
+      muted
+      playsInline
+      className="video-glow"
+    >
+      <source src="/video 2.mp4" type="video/mp4" />
+    </video>
+  </div>
+</div>
       </div>
 
       {/* Project 2 */}
       <div className="md:flex md:flex-row w-full">
-        <div className="w-full md:w-1/2 py-40 mt-[220px] overflow-visible">
-          <div ref={videoContainerRef2} className="video-offset translate-x-[20px]">
-            <video
-              ref={videoRef2}
-              loop
-              autoPlay
-              muted
-              playsInline
-              className="rounded-2xl w-full h-auto object-contain transition-all duration-500 hover:shadow-[0_0_40px_#a8d1cd]"
-            >
-              <source src="/2nd.mp4" type="video/mp4" />
-            </video>
-          </div>
-        </div>
+      <div className="w-full md:w-1/2 py-40 mt-[220px] overflow-visible relative z-10">
+  <div
+    ref={videoContainerRef2}
+    className="video-offset translate-x-[20px] relative z-10"
+  >
+    <video
+      ref={videoRef2}
+      loop
+      autoPlay
+      muted
+      playsInline
+      className="video-glow"
+    >
+      <source src="/2nd.mp4" type="video/mp4" />
+    </video>
+  </div>
+</div>
         <div className="w-full md:w-1/2 flex items-center justify-center px-8">
           <div ref={textRef2} className="text-center pt-32 force-margin max-w-2xl text-white overflow-hidden">
             <h2 className="text-3xl mb-4">EnterJain Social Media</h2>
@@ -937,24 +990,27 @@ const [isActive, setIsActive] = useState(false);
             </p>
           </div>
         </div>
-        <div className="w-full md:w-1/2 py-40 mt-[290px] overflow-visible">
-          <div ref={videoContainerRef3} className="video-offset translate-x-[-20px]">
-            <img
-              src="/rag.png"
-              alt="Nutrition LLM App screenshot"
-              className="image pointer-events-auto transition-all duration-500 hover:shadow-[0_0_40px_#a8d1cd]"
-              style={{
-                width: '100%',
-                height: '100%',
-                objectFit: 'cover',
-                objectPosition: '100% center',
-                borderRadius: '1rem',
-                display: 'block',
-              }}
-              draggable="false"
-            />
-          </div>
-        </div>
+        <div className="w-full md:w-1/2 py-40 mt-[290px] overflow-visible relative z-10">
+  <div
+    ref={videoContainerRef3}
+    className="video-offset translate-x-[-20px] relative z-10"
+  >
+    <img
+      src="/rag.png"
+      alt="rag"
+      className="image-glow"
+      style={{
+        width: '100%',
+        height: '100%',
+        objectFit: 'cover',
+        objectPosition: '100% center',
+        borderRadius: '1rem',
+        display: 'block',
+      }}
+      draggable="false"
+    />
+  </div>
+</div>
       </div>
     </section>
 {/* Intrests Section */}
@@ -994,7 +1050,7 @@ const [isActive, setIsActive] = useState(false);
     >
       <img
         src={src}
-        alt={label}
+        alt="label"
         className="image pointer-events-none"
         style={{
           width: "100%",
@@ -1027,58 +1083,47 @@ const [isActive, setIsActive] = useState(false);
   <div className="flex flex-col items-center space-y-[2vw]">
     {/* Top Row - LinkedIn */}
     <div className="text-[7.5vw] font-bold uppercase font-[Confillia] text-[#0f0f0f] leading-none text-center">
-      <a  href="https://www.linkedin.com/in/vaarinjain"
+    <a
+  href="https://www.linkedin.com/in/vaarinjain"
   target="_blank"
   rel="noopener noreferrer"
-  className="relative overflow-hidden h-[7.5vw] group block">
-        <span className="block transition-transform duration-300 group-hover:-translate-y-full will-change-transform">
-          LinkedIn
-        </span>
-        <span className="absolute top-full left-0 w-full block transition-transform duration-300 group-hover:-translate-y-full will-change-transform">
-          LinkedIn
-        </span>
-      </a>
+  className="hover-slide-container font-[Confillia] font-bold uppercase text-[#0f0f0f] text-[7.5vw] leading-none text-center"
+>
+  <span className="hover-slide">LinkedIn</span>
+  <span className="hover-slide hover-slide-second">LinkedIn</span>
+</a>
     </div>
 
     {/* Middle Row - Github & Gmail */}
-    <div className="relative z-10 flex gap-[4vw] text-[7.5vw] font-bold uppercase font-[Confillia] text-[#0f0f0f] leading-none text-center">
-    {["Github", "Gmail"].map((label) => {
-  const href =
-    label === "Github"
-      ? "https://github.com/Vaarin-J"
-      : "mailto:vaarinjain@gmail.com";
-
-  return (
+    <div className="relative z-10 flex gap-[4vw] leading-none text-center">
+  {[
+    { label: "Github", href: "https://github.com/Vaarin-J", isMail: false },
+    { label: "Gmail", href: "mailto:vaarinjain@gmail.com", isMail: true },
+  ].map(({ label, href, isMail }) => (
     <a
       key={label}
       href={href}
-      target={label === "Gmail" ? "_self" : "_blank"}
+      target={isMail ? "_self" : "_blank"}
       rel="noopener noreferrer"
-      className="relative overflow-hidden h-[7.5vw] group block"
+      className="hover-slide-container font-[Confillia] font-bold uppercase text-[#0f0f0f] text-[7.5vw]"
     >
-      <span className="block transition-transform duration-300 group-hover:-translate-y-full will-change-transform">
-        {label}
-      </span>
-      <span className="absolute top-full left-0 w-full block transition-transform duration-300 group-hover:-translate-y-full will-change-transform">
-        {label}
-      </span>
+      <span className="hover-slide">{label}</span>
+      <span className="hover-slide hover-slide-second">{label}</span>
     </a>
-  );
-})}
-    </div>
+  ))}
+</div>
    
     {/* Bottom Row - Instagram */}
     <div className="text-[7.5vw] font-bold uppercase font-[Confillia] text-[#0f0f0f] leading-none text-center">
-      <a href=" https://www.instagram.com/jain_street/"
+    <a
+  href="https://www.instagram.com/jain_street/"
   target="_blank"
-  rel="noopener noreferrer" className="relative overflow-hidden h-[7.5vw] group block">
-        <span className="block transition-transform duration-300 group-hover:-translate-y-full will-change-transform">
-          Instagram
-        </span>
-        <span className="absolute top-full left-0 w-full block transition-transform duration-300 group-hover:-translate-y-full will-change-transform">
-          Instagram
-        </span>
-      </a>
+  rel="noopener noreferrer"
+  className="hover-slide-container font-[Confillia] font-bold uppercase text-[#0f0f0f] text-[7.5vw] leading-none text-center"
+>
+  <span className="hover-slide">Instagram</span>
+  <span className="hover-slide hover-slide-second">Instagram</span>
+</a>
     </div>
   </div>
 
