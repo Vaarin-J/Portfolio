@@ -756,10 +756,35 @@ export default function Home() {
     }, 500);
   }, []);
 
+  const [isMobile, setIsMobile] = useState(false);
 
 
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 768); // Adjust threshold as needed
+    };
 
+    handleResize(); // Run once on mount
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
+  if (isMobile) {
+    return (
+      <div style={{ 
+        height: '100vh', 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        backgroundColor: '#000', 
+        color: '#fff', 
+        fontSize: '1rem',
+        fontFamily: 'Roslindale Display Condensed'
+      }}>
+        Open on a latop, currently being optimized for mobile devices.
+      </div>
+    );
+  }
 
   return (
 
