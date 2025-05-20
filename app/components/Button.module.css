@@ -1,7 +1,7 @@
 .button {
   position: fixed;
-  top: 50;
-  right: 50;
+  top: 50px;
+  right: 50px;
   width: 100px;
   height: 40px;
   cursor: pointer;
