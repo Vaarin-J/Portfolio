@@ -1,0 +1,17 @@
+.header {
+    position: fixed;
+    right: 50px;
+    top: 50px;
+    z-index: 10;
+  }
+  
+  .menu {
+    width: 100px;
+    height: 40px;
+    background-color: #a9c8c5
+    ;
+    border-radius: 25px;
+    position: relative;
+    overflow: hidden;
+  }
+  
