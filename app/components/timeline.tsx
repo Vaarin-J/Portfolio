@@ -99,13 +99,13 @@ export const Timeline = ({ data }: { data: TimelineItem[] }) => {
                         <h3 className="text-lg font-semibold text-neutral-200 leading-snug">{item.title}</h3>
                         <h4 className="text-sm text-neutral-500 leading-tight">{item.job}</h4>
                         {item.logo && (
-                          <div className="mt-[2px]">
+                          <div className="w-[70px] h-[50px] mt-[2px]">
                             <Image
                               src={item.logo}
                               alt={`${item.job} logo`}
-                              width={50}
+                              width={70}
                               height={50}
-                              className="rounded-xl object-cover bg-white shadow-md"
+                              className="w-full h-full rounded-xl object-cover bg-white shadow-md"
                             />
                           </div>
                         )}

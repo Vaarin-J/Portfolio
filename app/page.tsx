@@ -131,6 +131,7 @@ export default function Home() {
     const unlock = setTimeout(() => {
       lenis.start();         // Unlock Lenis scroll
       setScrollLocked(false);
+      ScrollTrigger.refresh(); // Add this here too
     }, 8000); // 7s match your intro animation
   
     return () => {
@@ -275,24 +276,27 @@ export default function Home() {
   useEffect(() => {
     const tl = gsap.timeline({ defaults: { ease: 'none' }, delay: 8.5 });
   
-    // Fade in the spans instantly at 7s
-    tl.to(['#scramble-text-1', '#scramble-text-2'], {
-      opacity: 1,
-      duration: 0.01, // instant fade-in
-    });
+    // Make sure spans start truly empty
+    const span1 = document.getElementById("scramble-text-1");
+    const span2 = document.getElementById("scramble-text-2");
+    if (span1) span1.textContent = "";
+    if (span2) span2.textContent = "";
   
-    // Start the scramble effect
-    tl.to('#scramble-text-1', {
+    // Set opacity to 1 right before scrambling
+    tl.set([span1, span2], { opacity: 1 });
+  
+    // Apply scramble text animation
+    tl.to(span1, {
       scrambleText: {
-        text: 'Software Engineer',
-        chars: 'upperAndLowerCase',
+        text: "Software Engineer",
+        chars: "upperAndLowerCase",
         speed: 0.8,
       },
       duration: 1,
-    }).to('#scramble-text-2', {
+    }).to(span2, {
       scrambleText: {
-        text: 'Data Scientist',
-        chars: 'upperAndLowerCase',
+        text: "Data Scientist",
+        chars: "upperAndLowerCase",
         speed: 0.8,
       },
       duration: 1,
@@ -895,6 +899,10 @@ export default function Home() {
           <div className="grid-4 group relative overflow-hidden ">
   <div className="w-full h-full flex items-center justify-center text-center">
     <div className="relative w-full">
+
+    <p className="absolute -top-10 right-4 text-sm text-gray-400 group-hover:opacity-0 transition-opacity duration-300 z-10 pointer-events-none" style={{ fontFamily: 'DM Mono, monospace' }}>
+        HOVER ME!
+      </p>
       {/* Default text */}
       <p className="text-2xl text-gray-500 group-hover:opacity-0 transition-opacity duration-300">
         MAJOR - COMPUTER SCIENCE
@@ -911,6 +919,7 @@ export default function Home() {
       </p>
     </div>
   </div>
+  
 </div>
           <div className="grid-default-color grid-5">
             <div className="z-10 w-[50%]">
@@ -956,7 +965,7 @@ export default function Home() {
       {/* Project 1 */}
       <div className="md:flex md:flex-row w-full">
         <div className="w-full md:w-1/2 flex items-center justify-center px-8">
-          <div ref={textRef1} className="text-center pt-32 force-margin max-w-2xl text-white overflow-hidden">
+          <div ref={textRef1} className="text-center pt-32 force-margin max-w-xl text-white overflow-hidden">
             <h2 className="text-3xl mb-4">Skn Spark</h2>
             <p className="text-lg text-gray-300 leading-relaxed">
               A responsive and user-friendly skincare questionnaire built with React, designed to collect personalized
@@ -1005,7 +1014,7 @@ export default function Home() {
   </div>
 </div>
         <div className="w-full md:w-1/2 flex items-center justify-center px-8">
-          <div ref={textRef2} className="text-center pt-32 force-margin max-w-2xl text-white overflow-hidden">
+          <div ref={textRef2} className="text-center pt-32 force-margin max-w-xl text-white overflow-hidden">
             <h2 className="text-3xl mb-4">EnterJain Social Media</h2>
             <p className="text-lg text-gray-300 leading-relaxed">
               A full-stack social media platform built using Java Spring Boot and React. Features include user
@@ -1019,7 +1028,7 @@ export default function Home() {
       {/* Project 3 */}
       <div className="md:flex md:flex-row w-full">
         <div className="w-full md:w-1/2 flex items-center justify-center px-8">
-          <div ref={textRef3} className="text-center pt-32 force-margin max-w-2xl text-white overflow-hidden">
+          <div ref={textRef3} className="text-center pt-32 force-margin max-w-xl text-white overflow-hidden">
             <h2 className="text-3xl mb-4">Nutrition LLM App</h2>
             <p className="text-lg text-gray-300 leading-relaxed">
               An AI-powered assistant that answers user nutrition questions using Retrieval-Augmented Generation (RAG).
