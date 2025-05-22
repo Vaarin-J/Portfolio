@@ -114,6 +114,26 @@ export default function Home() {
   useEffect(() => {
     const lenis = new Lenis();
   
+    // Tie ScrollTrigger with Lenis scroll
+    ScrollTrigger.scrollerProxy(document.body, {
+      scrollTop(value) {
+        if (value !== undefined) {
+          lenis.scrollTo(value, { immediate: true });
+        } else {
+          return lenis.scroll.instance.scroll.y;
+        }
+      },
+      getBoundingClientRect() {
+        return {
+          top: 0,
+          left: 0,
+          width: window.innerWidth,
+          height: window.innerHeight,
+        };
+      },
+      pinType: document.body.style.transform ? "transform" : "fixed",
+    });
+
     requestAnimationFrame(function raf(time) {
       lenis.raf(time);
       requestAnimationFrame(raf);
@@ -127,15 +147,15 @@ export default function Home() {
     // Disable scrolling manually via Lenis
     lenis.stop();
   
-    // Re-enable after animation
     const unlock = setTimeout(() => {
-      lenis.start();         // Unlock Lenis scroll
+      lenis.start();
       setScrollLocked(false);
-      ScrollTrigger.refresh(); // Add this here too
-    }, 8000); // 7s match your intro animation
+      ScrollTrigger.refresh(); // make sure triggers update after scroll is unlocked
+    }, 8000);
   
     return () => {
       lenis.destroy();
+      ScrollTrigger.scrollerProxy(document.body, undefined);
       clearTimeout(unlock);
     };
   }, []);
