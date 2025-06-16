@@ -986,7 +986,7 @@ export default function Home() {
       <div className="md:flex md:flex-row w-full">
         <div className="w-full md:w-1/2 flex items-center justify-center px-8">
           <div ref={textRef1} className="text-center pt-32 force-margin max-w-xl text-white overflow-hidden">
-            <h2 className="text-3xl mb-4">Skn Spark</h2>
+            <h2 className="text-3xl mb-4">PerfumAi</h2>
             <p className="text-lg text-gray-300 leading-relaxed">
               A responsive and user-friendly skincare questionnaire built with React, designed to collect personalized
               skin data for ML-based prediction on Quantum Frequency Skin Care. The interface guides users through
@@ -1008,7 +1008,7 @@ export default function Home() {
       playsInline
       className="video-glow"
     >
-      <source src="/video 2.mp4" type="video/mp4" />
+      <source src="/perfumai.mp4" type="video/mp4" />
     </video>
   </div>
 </div>
@@ -1078,6 +1078,36 @@ export default function Home() {
     />
   </div>
 </div>
+      </div>
+      <div className="md:flex md:flex-row w-full">
+      <div className="w-full md:w-1/2 py-40 mt-[220px] overflow-visible relative z-10">
+  <div
+    ref={videoContainerRef2}
+    className="video-offset translate-x-[20px] relative z-10"
+  >
+    <video
+      ref={videoRef2}
+      loop
+      autoPlay
+      muted
+      playsInline
+      className="video-glow"
+    >
+      <source src="/video 2.mp4" type="video/mp4" />
+    </video>
+  </div>
+</div>
+        <div className="w-full md:w-1/2 flex items-center justify-center px-8">
+          <div ref={textRef2} className="text-center pt-32 force-margin max-w-xl text-white overflow-hidden">
+            <h2 className="text-3xl mb-4">Skn Spark</h2>
+            <p className="text-lg text-gray-300 leading-relaxed">
+            A responsive and user-friendly skincare questionnaire built with React, designed to collect personalized
+              skin data for ML-based prediction on Quantum Frequency Skin Care. The interface guides users through
+              dynamic questions and seamlessly integrates with a Python backend to suggest skincare items using the
+              recommendation model.
+            </p>
+          </div>
+        </div>
       </div>
     </section>
 {/* Intrests Section */}
